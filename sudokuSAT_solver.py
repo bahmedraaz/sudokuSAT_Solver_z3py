@@ -7,6 +7,8 @@ import numpy as np
 
 N = 9
 
+fileName = input("Please Enter The Input File Name: ")
+
 # board = [
 #     [7,8,0,4,0,0,1,2,0],
 #     [6,0,0,0,7,5,0,0,9],
