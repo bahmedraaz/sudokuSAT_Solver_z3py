@@ -1,13 +1,58 @@
 from z3 import *
 import sys
+import numpy as np
 #
 #sys.stdout = open("output.txt", "w")
 
 
 N = 9
 
+# board = [
+#     [7,8,0,4,0,0,1,2,0],
+#     [6,0,0,0,7,5,0,0,9],
+#     [0,0,0,6,0,1,0,7,8],
+#     [0,0,7,0,4,0,2,6,0],
+#     [0,0,1,0,5,0,9,3,0],
+#     [9,0,4,0,6,0,0,0,5],
+#     [0,7,0,3,0,0,0,1,2],
+#     [1,2,0,0,0,7,4,0,0],
+#     [0,4,9,2,0,6,0,0,7]
+# ]
+
+
+board = [
+    [5,3,0,0,7,0,0,0,0],
+    [6,0,0,1,9,5,0,0,0],
+    [0,9,8,0,0,0,0,6,0],
+    [8,0,0,0,6,0,0,0,3],
+    [4,0,0,8,0,3,0,0,1],
+    [7,0,0,0,2,0,0,0,6],
+    [0,6,0,0,0,0,2,8,0],
+    [0,0,0,4,1,9,0,0,5],
+    [0,0,0,0,8,0,0,7,9]
+]
+
 def xorSat(param1, param2):
     return Or(And(Not(param1),param2),And(param1,Not(param2)))
+
+
+def createInstanceCanstraint(xPosition,yPosition,binaryNumber):
+    constraint = []
+    for k in range(4):
+        if binaryNumber[k]=='1':
+            constraint.append(X[xPosition][yPosition][k])
+        else:
+            constraint.append(Not(X[xPosition][yPosition][k]))
+
+    #print("binaryNumber: ", binaryNumber)
+    #print()
+    return [And([constraint[i] for i in range(len(constraint))])]
+
+
+def printMatrix(aList):
+    aArray = np.array(aList)
+    m = aArray.reshape(N,N)
+    print(m.T)
 
 
 # 9x9 matrix of integer variables
@@ -33,7 +78,8 @@ valueWithinOneToNine = []
 for i in range(N):
     for j in range(N):
         #valueWithinOneToNine.append(Or(And(X[i][j][3], Not(X[i][j][2]), Not(X[i][j][1])), And(Not(X[i][j][3]), Or(X[i][j][2],X[i][j][0],X[i][j][1]))))
-        Or(And(X[i][j][0], Not(X[i][j][3])), And(X[i][j][2], Not(X[i][j][3])), And(Not(X[i][j][2]), X[i][j][3], Not(X[i][j][1])), And(X[i][j][1]),Not(X[i][j][3]))
+        #valueWithinOneToNine.append(Or(And(X[i][j][0], Not(X[i][j][3])), And(X[i][j][2], Not(X[i][j][3])), And(Not(X[i][j][2]), X[i][j][3], Not(X[i][j][1])), And(X[i][j][1]),Not(X[i][j][3])))
+        valueWithinOneToNine.append(Or(And(Not(X[i][j][0]),X[i][j][1]),And(X[i][j][0],Not(X[i][j][1]),Not(X[i][j][2])),And(Not(X[i][j][0]),X[i][j][3]),And(Not(X[i][j][0]),X[i][j][2])))
 
 
 
@@ -89,8 +135,56 @@ for i0 in range(3):
 # instanseConstraint_2 = [And(Not(X[4][0][0]), X[4][0][1], X[4][0][2], X[4][0][3])]
 
 
+boardConstraint = []
+
+for i in range(9):
+    for j in range(9):
+        if board[i][j] != 0:
+            binNumber = '{0:04b}'.format(board[i][j])
+            tempConstraint = createInstanceCanstraint(i,j,binNumber)
+            for k in range(len(tempConstraint)):
+                boardConstraint.append(tempConstraint[k])
+            #boardConstraint.append(createInstanceCanstraint(i,j,binNumber))
+            #instanceCellConstraint = [And([X[i][j][k] for k in range(4) if binNumber[k]=='1'])]
+            #boardConstraint.append(instanceCellConstraint)
+
+#print(boardConstraint)
+#print(boxConstraint)
+
+
+
 #print(X)
 #print(X[0][0][0])
 s = Solver()
-s.add(noZeroCell+valueWithinOneToNine+rowConstraint+columnConstraint+boxConstraint)
-print(s.check())
+s.add(noZeroCell+valueWithinOneToNine+rowConstraint+columnConstraint+boxConstraint+boardConstraint)
+#s.add(noZeroCell+rowConstraint+columnConstraint+boxConstraint+boardConstraint)
+#s.add(boardConstraint+valueWithinOneToNine)
+
+
+if s.check() == sat:
+    m = s.model()
+    r = [ [ m.evaluate(X[i][j][k]) for k in range(4) ]
+          for j in range(9) for i in range(9)]
+    #print_matrix(r)
+
+
+    aBin = []
+    for i in range(len(r)):
+        temp = ""
+        for j in range(len(r[i])):
+            if r[i][j]==True:
+                temp = temp+"1"
+            else:
+                temp = temp+"0"
+        aBin.append(temp)
+
+    aBinToDec = []
+    for i in range(len(aBin)):
+        aBinToDec.append(int(aBin[i],2))
+        #print(int(aBin[i],2))
+
+    printMatrix(aBinToDec)
+    #print(int(aBin[0],2))
+
+else:
+    print("failed to solve")
