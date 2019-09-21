@@ -1,9 +1,9 @@
-readFile = open("sudoku.txt", "r")
+with open('sudoku.txt', 'r') as f:
+    l = [[int(num) for num in line.split(',')] for line in f]
+#print(l)
 
-myList = [[line for line in readFile]]
-#myListInt = [int(element) for element in myList]
-print(myList)
 
-# line =['3', '4', '1\r\n']
-# int_list = [int(i) for i in line]
-# print(int_list)
+for n, i in enumerate(l):
+    for k, j in enumerate(i):
+        l[n][k] = int(j)
+print(l)
