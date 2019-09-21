@@ -32,7 +32,8 @@ valueWithinOneToNine = []
 
 for i in range(N):
     for j in range(N):
-        valueWithinOneToNine.append(Or(And(X[i][j][3], Not(X[i][j][2]), Not(X[i][j][1])), And(Not(X[i][j][3]), Or(X[i][j][2],X[i][j][0],X[i][j][1]))))
+        #valueWithinOneToNine.append(Or(And(X[i][j][3], Not(X[i][j][2]), Not(X[i][j][1])), And(Not(X[i][j][3]), Or(X[i][j][2],X[i][j][0],X[i][j][1]))))
+        Or(And(X[i][j][0], Not(X[i][j][3])), And(X[i][j][2], Not(X[i][j][3])), And(Not(X[i][j][2]), X[i][j][3], Not(X[i][j][1])), And(X[i][j][1]),Not(X[i][j][3]))
 
 
 
@@ -82,6 +83,14 @@ for i0 in range(3):
 
         boxConstraint = [And([boxElemDifferent[i] for i in range(len(boxElemDifferent))])]
 
+
+# instanseConstraint_1 = [And(Not(X[0][0][0]), Not(X[0][0][1]), X[0][0][2], X[0][0][3])]
+# #instanseConstraint_2 = [And(Not(X[0][1][0]), Not(X[0][1][1]), Not(X[0][1][2]), X[0][1][3])]
+# instanseConstraint_2 = [And(Not(X[4][0][0]), X[4][0][1], X[4][0][2], X[4][0][3])]
+
+
+#print(X)
+#print(X[0][0][0])
 s = Solver()
 s.add(noZeroCell+valueWithinOneToNine+rowConstraint+columnConstraint+boxConstraint)
 print(s.check())
